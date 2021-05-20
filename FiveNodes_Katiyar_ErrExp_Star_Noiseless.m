@@ -1,0 +1,110 @@
+%rho_vec = 0.20:0.025:0.995;
+rho_vec = 0.79:0.002:0.81;
+theta_vec = (1-rho_vec)/2;
+L = length(theta_vec);
+FiveNodes_Kat_ErrExp_Noiseless = zeros(1,L);
+Kat_gap1 = zeros(1,L);
+Kat_gap2 = zeros(1,L);
+
+p2 = ones(32,1)*0.01;
+p2(1) = p2(1) + 0.40;
+p2(4) = p2(4) + 0.07;
+p2(29) = p2(29) + 0.07;
+p2(32) = p2(32) + 0.40;
+p2 = p2/sum(p2);
+
+for ii = 1:L
+    theta = theta_vec(ii);
+    %Kat_gap1(ii) = EvalThreshold1(p2,theta);
+    %Kat_gap2(ii) = EvalThreshold2(p2,theta);
+    
+    [P2, Kat_Val] = FiveNodes_Katiyar_OptDist_Star_Noiseless_func(theta,p2);
+    p2 = zeros(32,1);
+    for jj = 1:31
+        p2(jj) = P2.x(jj);
+    end
+    p2(32) = 1 - sum(p2);
+    Kat_gap1(ii) = EvalThreshold1(p2,theta);
+    Kat_gap2(ii) = EvalThreshold2(p2,theta);
+
+    FiveNodes_Kat_ErrExp_Noiseless(ii) = Kat_Val;
+end
+
+figure(1)
+plot(rho_vec,FiveNodes_Kat_ErrExp_Noiseless,'r--');
+grid on
+xlabel('rho');
+ylabel('Exponent (Star tree, No noise)');
+legend('Katiyar Algo');
+
+figure(2) 
+plot(rho_vec, Kat_gap1);
+legend('Kat gap1');
+
+figure(3)
+plot(rho_vec, Kat_gap2);
+legend('Kat gap2');
+
+function z1 = EvalThreshold1(x,theta)
+    t12_pos = x(1)+x(2)+x(3)+x(4)+x(13)+x(14)+x(15)+x(16)+...
+            x(17)+x(18)+x(19)+x(20)+x(29)+x(30)+x(31)+x(32);
+    t12_neg = x(5)+x(6)+x(7)+x(8)+x(9)+x(10)+x(11)+x(12)+...
+            x(21)+x(22)+x(23)+x(24)+x(25)+x(26)+x(27)+x(28);
+    rho12 = t12_pos - t12_neg;
+    
+    t34_pos = x(1)+x(4)+x(5)+x(8)+x(9)+x(12)+x(13)+x(16)+...
+            x(17)+x(20)+x(21)+x(24)+x(25)+x(28)+x(29)+x(32);
+    t34_neg = x(2)+x(3)+x(6)+x(7)+x(10)+x(11)+x(14)+x(15)+...
+            x(18)+x(19)+x(22)+x(23)+x(26)+x(27)+x(30)+x(31);
+    rho34 = t34_pos - t34_neg;
+    
+    t13_pos = x(1)+x(2)+x(5)+x(6)+x(11)+x(12)+x(15)+x(16)+...
+            x(17)+x(18)+x(21)+x(22)+x(27)+x(28)+x(31)+x(32);
+    t13_neg = x(3)+x(4)+x(7)+x(8)+x(9)+x(10)+x(13)+x(14)+...
+            x(19)+x(20)+x(23)+x(24)+x(25)+x(26)+x(29)+x(30);
+    rho13 = t13_pos - t13_neg;
+    
+    t24_pos = x(1)+x(3)+x(6)+x(8)+x(9)+x(11)+x(14)+x(16)+...
+            x(17)+x(19)+x(22)+x(24)+x(25)+x(27)+x(30)+x(32);
+    t24_neg = x(2)+x(4)+x(5)+x(7)+x(10)+x(12)+x(13)+x(15)+...
+            x(18)+x(20)+x(21)+x(23)+x(26)+x(28)+x(29)+x(31);
+    rho24 = t24_pos - t24_neg;
+   
+    rho = 1 - 2*theta;
+    thresh = (1+rho*rho)/2;
+    
+    rho_metric = (rho13*rho24)/(rho12*rho34);
+    z1 = rho_metric - thresh;
+end
+
+function z2 = EvalThreshold2(x,theta)
+    t14_pos = x(1)+x(3)+x(5)+x(7)+x(10)+x(12)+x(14)+x(16)+...
+            x(17)+x(19)+x(21)+x(23)+x(26)+x(28)+x(30)+x(32);
+    t14_neg = x(2)+x(4)+x(6)+x(8)+x(9)+x(11)+x(13)+x(15)+...
+            x(18)+x(20)+x(22)+x(24)+x(25)+x(27)+x(29)+x(31);
+    rho14 = t14_pos - t14_neg;
+    
+    t23_pos = x(1)+x(2)+x(7)+x(8)+x(9)+x(10)+x(15)+x(16)+...
+            x(17)+x(18)+x(23)+x(24)+x(25)+x(26)+x(31)+x(32);
+    t23_neg = x(3)+x(4)+x(5)+x(6)+x(11)+x(12)+x(13)+x(14)+...
+            x(19)+x(20)+x(21)+x(22)+x(27)+x(28)+x(29)+x(30);
+    rho23 = t23_pos - t23_neg;
+   
+     t13_pos = x(1)+x(2)+x(5)+x(6)+x(11)+x(12)+x(15)+x(16)+...
+            x(17)+x(18)+x(21)+x(22)+x(27)+x(28)+x(31)+x(32);
+    t13_neg = x(3)+x(4)+x(7)+x(8)+x(9)+x(10)+x(13)+x(14)+...
+            x(19)+x(20)+x(23)+x(24)+x(25)+x(26)+x(29)+x(30);
+    rho13 = t13_pos - t13_neg;
+    
+    t24_pos = x(1)+x(3)+x(6)+x(8)+x(9)+x(11)+x(14)+x(16)+...
+            x(17)+x(19)+x(22)+x(24)+x(25)+x(27)+x(30)+x(32);
+    t24_neg = x(2)+x(4)+x(5)+x(7)+x(10)+x(12)+x(13)+x(15)+...
+            x(18)+x(20)+x(21)+x(23)+x(26)+x(28)+x(29)+x(31);
+    rho24 = t24_pos - t24_neg;
+   
+    rho = 1 - 2*theta;
+    thresh = (1+rho*rho)/2;
+    
+    rho_metric = (rho13*rho24)/(rho14*rho23);
+    z2 = rho_metric - thresh;
+end
